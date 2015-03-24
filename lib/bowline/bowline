@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+# check if we're on the host
+if [ -e "/proc/self/cgroup" ];then
+  [ "$(grep docker /proc/self/cgroup)" ] && export context="container"
+fi
+[ "$context" ] || export context="host"
+
+get_container_name () { echo "${SLUG}_${1}_1"; }
+
+check_build() { unset CONTAINERS_BUILT; [ "$(docker ps -a | grep ${SLUG}_web)" ] && CONTAINERS_BUILT="true"; }
+
+check_proxy() {
+  unset PROXY_RUNNING PROXY_HOST_SET;
+  if [ "$(docker ps -q -f name=proxy_)" ];then
+    PROXY_RUNNING="true";
+    PROXY_HOST_SET=$(docker exec proxy_dnsmasq_1 grep "\s${BOWLINE}$" /etc/althosts|grep "$web_ip\s")
+  fi
+}
+
+# Set basic env variables.
+bowline_init () {
+  GIT_ROOT=$(git rev-parse --show-toplevel)
+  BOWLINE=${GIT_ROOT##*/}
+  GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  SLUG=${BOWLINE//-/}  # Fig doesn't allow the - char.
+  SLUG=${SLUG//_/}  # Fig doesn't allow the _ char.
+  FIG="fig"  # Add command options here.
+  [ "$(command -v docker-compose)" ] && FIG="docker-compose"
+
+  cd $GIT_ROOT
+
+  ### @@ Note, everytime the ip changes the following should run
+  # Add some useful container env
+  check_build
+  fig_containers=$(grep '^\S*:' docker-compose.yml)
+  unset containers
+  for c in $fig_containers; do
+    name="${c%:}"
+    container_name="$(get_container_name ${name})"
+    # Set variables such as $web and $db from the fig.yml.
+    export "${name}=${container_name}"
+    # Set IP addresses if they are available.
+    if [ "$CONTAINERS_BUILT" ];then
+      local ip="$(docker inspect --format='{{.NetworkSettings.IPAddress}}' ${container_name})"
+      [ "$ip" ] && export "${name}_ip"=$ip || export "${name}_ip"="not running"
+    else
+      export "${name}_ip"="not built"
+    fi
+    export containers="${containers} ${name}"
+  done
+}
+
+[ $context = "host" ] && bowline_init
+
+
+assert_running () {
+  local cn=$(get_container_name web)
+  RUNNING=$(docker inspect --format="{{ .State.Running }}" ${cn} 2> /dev/null)
+  [ "$RUNNING" = "true" ] || $FIG up -d --no-recreate
+}
+
+
+enter_container () {
+  if [ $context = "container" ];then
+    cd /var/www
+    return
+  fi
+  assert_running
+  docker exec -it $(get_container_name web) /var/www/bin/$(basename $0) $@
+  EXIT=$?
+  echo Exit Status: $EXIT
+  exit $EXIT
+}

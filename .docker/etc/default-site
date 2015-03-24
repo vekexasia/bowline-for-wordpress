@@ -1,0 +1,35 @@
+<VirtualHost *:80>
+
+    DocumentRoot /var/www/wordpress-core/
+    
+    DirectoryIndex index.html index.htm index.php
+    
+    <Directory "/var/www/wordpress-core">
+        AllowOverride All
+    </Directory>
+    
+    Alias /wp-content/plugins /var/www/wordpress-content/plugins
+    <Directory "/var/www/wordpress-content/plugins">
+        AllowOverride All
+    </Directory>
+
+	Alias /wp-content/themes /var/www/wordpress-content/themes
+    <Directory "/var/www/wordpress-content/themes">
+        AllowOverride All
+    </Directory>
+
+    Alias /wp-content/uploads /var/www/wordpress-content/uploads
+    <Directory "/var/www/wordpress-content/uploads">
+        AllowOverride All
+    </Directory>
+
+    ErrorLog  /var/log/app/wordpress/error_log
+    CustomLog /var/log/app/wordpress/access_log common
+ 
+    AddType application/x-httpd-php .php .php3 .php4 .php5
+ 
+    php_value log_errors 1
+    php_value error_log /var/log/app/wordpress/phperrors.log
+    Options -Indexes
+ 
+</VirtualHost>

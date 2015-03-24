@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+cp $(dirname $0)/../.docker/wp-config.php $(dirname $0)/../data/wordpress-core/wp-config.php

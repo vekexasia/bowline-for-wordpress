@@ -1,0 +1,19 @@
+#!/bin/bash
+cd $(dirname $0)/../data
+
+if [ ! -d ./wordpress-core ]; then
+	mkdir ./wordpress-core
+fi
+
+curl https://wordpress.org/latest.tar.gz | tar xvz
+if [ -d ./wordpress-core ]; then
+	rm -rf wordpress-core-old
+	cp -a ./wordpress-core ./wordpress-core-old
+fi
+
+cp -r wordpress/* wordpress-core/
+rm -rf wordpress-core/wp-content/plugins
+rm -rf wordpress-core/wp-content/themes
+rm -rf wordpress-core/wp-content/uploads
+rm -rf wordpress
+cp ../.docker/wp-config.php ./wordpress-core/wp-config.php

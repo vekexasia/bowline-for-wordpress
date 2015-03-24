@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+source $(dirname $0)/../lib/bowline/bowline
+
+FILENAME=${GIT_ROOT}/.${GIT_BRANCH}.sql
+$(dirname $0)/./wp db export - > $FILENAME
+gzip $FILENAME
+
+
+echo "File saved as ${FILENAME}.gz"
