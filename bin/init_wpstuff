@@ -5,3 +5,6 @@ mkdir -p data/logs/app/supervisor
 mkdir -p data/logs/app/wordpress
 mkdir -p data/logs/app/mysqld
 
+echo "Getting core!"
+$(dirname $0)/get_core
+

@@ -46,11 +46,13 @@ RUN chmod +x /var/www/bin/wp
 
 # Wordpress Initialization and Startup Script
 ADD ./bin/fix-perms /var/www/bin/fix-perms
+ADD ./lib/bowline /var/www/lib/bowline
 ADD .docker/composer.json /var/www/composer.json
 
 ADD .docker/start.sh /start.sh
 ADD .docker/etc/apache_foreground.sh /etc/apache2/foreground.sh
 ADD .docker/wp-cli.yml /var/www/wp-cli.yml
+
 RUN chmod 755 /start.sh /etc/apache2/foreground.sh /var/www/bin/fix-perms
 RUN chown www-data:www-data /var/www/wp-cli.yml
 

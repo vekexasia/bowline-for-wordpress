@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+source $(dirname $0)/../lib/bowline/bowline
+
+docker exec -it $(get_container_name web) bash
